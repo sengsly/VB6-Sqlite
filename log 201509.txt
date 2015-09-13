@@ -1,0 +1,7 @@
+13-Sep-15 12:29:41 PM	ERROR,[GetDirectorName] Cannot compile Select-Statement: unrecognized token: "2ORDER" [IDs = 1 ,maxName=2]
+13-Sep-15 12:29:49 PM	ERROR,[GetDirectorName] Cannot compile Select-Statement: unrecognized token: "2ORDER" [IDs = 1 ,maxName=2]
+13-Sep-15 12:30:43 PM	ERROR,[GetDirectorName] Cannot compile Select-Statement: near "ORDER": syntax error [IDs = 1 ,maxName=2]
+13-Sep-15 12:30:49 PM	ERROR,[GetDirectorName] Cannot compile Select-Statement: near "ORDER": syntax error [IDs = 1 ,maxName=2]
+13-Sep-15 12:31:30 PM	ERROR,[GetDirectorName] Cannot compile Select-Statement: near "ORDER": syntax error [IDs = 1 ,maxName=2]
+13-Sep-15 12:36:32 PM	ERROR,[GetDirectorName] Cannot compile Select-Statement: near ")": syntax error [IDs = 1,2 ,maxName=2]
+13-Sep-15 12:46:50 PM	ERROR,[GetDirectorName] Cannot compile Select-Statement: near "dIN": syntax error [IDs = 1,2 ,maxName=2 ,sQueryString=SELECT group_concat(Name,'+') as Name, group_concat(Unicode,' + ') as Unicode FROM Director WHERE ID dIN(1,2) ORDER BY Name LIMIT 2]

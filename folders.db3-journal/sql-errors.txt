@@ -1,0 +1,2 @@
+C:\Seng\VB6 Sqlite\folders.db3:BDB0174 Encrypted environment: no encryption key supplied
+C:\Seng\VB6 Sqlite\folders.db3:BDB0174 Encrypted environment: no encryption key supplied
