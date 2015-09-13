@@ -239,31 +239,39 @@ Public Function GetActorName(IDs As String, boolUnicode As Boolean) As String
 
    On Error GoTo Error
    Dim sQueryID As String
-   Dim iActorCount As Integer
-   Dim sActorName As String
-   Dim sActorUnicode As String
-   Dim sActorsUnicode As String
-   Dim sActorsName As String
    Dim sqlQuery As cRecordset
+   Dim sQuery As String
    
    sQueryID = Trim(Replace(IDs, ";", " "))
    sQueryID = Replace(sQueryID, " ", ",")
    
-   Set sqlQuery = mConnection.OpenRecordset("SELECT Name, Unicode FROM Actor WHERE ID IN(" & sQueryID & ") ORDER BY Name")
-   While Not sqlQuery.EOF
-      sActorName = sqlQuery.Fields("Name")
-      sActorUnicode = sqlQuery.Fields("Unicode")
-      If sActorName = "" Then sActorName = sActorUnicode
-      If sActorUnicode = "" Then sActorUnicode = sActorName
-      
-      If sActorsName = "" Then sActorsName = sActorName Else sActorsName = sActorsName & " + " & sActorName
-      If sActorsUnicode = "" Then sActorsUnicode = sActorUnicode Else sActorsUnicode = sActorsUnicode & " + " & sActorUnicode
-      
-      iActorCount = iActorCount + 1 '
-      sqlQuery.MoveNext
-   Wend
+   
+   sQuery = "SELECT group_concat(CASE WHEN (Name ='' OR Name IS NULL) THEN Unicode ELSE Name END,' + ') as Name, " & _
+            "       group_concat(CASE WHEN (Unicode='' OR Unicode IS NULL) THEN Name ELSE Unicode END,' + ') as Unicode  FROM  Label WHERE ID IN(" & sQueryID & ") " & _
+            "ORDER BY Name"
+   '
+   Set sqlQuery = mConnection.OpenRecordset(sQuery)
+   
 
-   If boolUnicode Then GetActorName = sActorsName & "%%" & sActorsUnicode Else GetActorName = sActorsName
+   If Not sqlQuery.EOF Then
+      If boolUnicode Then GetActorName = sqlQuery.Fields("Name") & "%%" & sqlQuery.Fields("Unicode") Else GetActorName = sqlQuery.Fields("Name")
+   End If
+   
+   'Set sqlQuery = mConnection.OpenRecordset("SELECT Name, Unicode FROM Actor WHERE ID IN(" & sQueryID & ") ORDER BY Name")
+'''   While Not sqlQuery.EOF
+'''      sActorName = sqlQuery.Fields("Name")
+'''      sActorUnicode = sqlQuery.Fields("Unicode")
+'''      If sActorName = "" Then sActorName = sActorUnicode
+'''      If sActorUnicode = "" Then sActorUnicode = sActorName
+'''
+'''      If sActorsName = "" Then sActorsName = sActorName Else sActorsName = sActorsName & " + " & sActorName
+'''      If sActorsUnicode = "" Then sActorsUnicode = sActorUnicode Else sActorsUnicode = sActorsUnicode & " + " & sActorUnicode
+'''
+'''      iActorCount = iActorCount + 1 '
+'''      sqlQuery.MoveNext
+'''   Wend
+
+   'If boolUnicode Then GetActorName = sActorsName & "%%" & sActorsUnicode Else GetActorName = sActorsName
    
    Exit Function
 Error:

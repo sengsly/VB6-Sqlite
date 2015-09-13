@@ -58,12 +58,13 @@ Private Sub Command1_Click()
    'Debug.Print cYMGuide.GetTracksByAlbum(134, True)
    'Debug.Print cYMGuide.GetGenre
    'Debug.Print cYMGuide.GetLabel
-   Debug.Print cYMGuide.GetDirectorName("1,2", 2)
+   Debug.Print cYMGuide.GetActorName(";1;2;3;", False)
+   'Debug.Print cYMGuide.GetDirectorName("1,2", 2)
 End Sub
 
 Private Sub Command2_Click()
    'MsgBox cYMGuide.GetLabelName(12324324)
-   MsgBox cYMGuide.GetActorName(";14;34;8", False)
+   MsgBox cYMGuide.GetActorName(";14;34;8", True)
 End Sub
 
 Private Sub Command3_Click()
