@@ -13,6 +13,16 @@ Attribute VB_PredeclaredId = False
 Attribute VB_Exposed = False
 Option Explicit
 
+
+
+'=====================Local Enumeration
+Public Enum AlbumEnum
+   NotAvailable = 0
+   Available = 1
+   All = 3
+End Enum
+
+
 '=====================Local Constant
 Const mRsaKey = "ymguide"
 
@@ -22,6 +32,10 @@ Dim mCountry As String
 Dim mLanguage As String
 Dim mCountryPath As String
 Dim mOpenSuccess As Boolean
+
+'======================Browsing album
+Public selectAlbumType As AlbumEnum
+
 
 
 Private Sub Class_Initialize()
@@ -172,18 +186,7 @@ Error:
    Log.Writelog "GetLabel", "ERROR", Err.Description, "NULL"
 End Function
 
-Public Function GetLabelName(ByVal ID As Long) As String
-   On Error GoTo Error
-   
-   Dim sqlQuery As cRecordset
-   Set sqlQuery = mConnection.OpenRecordset("SELECT Name, Unicode FROM Label WHERE ID=" & ID)
-   If Not sqlQuery.EOF Then GetLabelName = sqlQuery.Fields("Name")
-   Set sqlQuery = Nothing
-   Exit Function
-Error:
-   'WriteEvent "GetLabelName", Err.Description, Err.Source
-   Log.Writelog "GetLabelName", "ERROR", Err.Description, "ID = " & ID
-End Function
+
 Public Function GetTVSeriesName(ByVal ID As Long) As String
 
    On Error GoTo Error
@@ -240,38 +243,20 @@ Public Function GetActorName(IDs As String, boolUnicode As Boolean) As String
    On Error GoTo Error
    Dim sQueryID As String
    Dim sqlQuery As cRecordset
-   Dim sQuery As String
+   Dim sQueryString As String
    
    sQueryID = Trim(Replace(IDs, ";", " "))
    sQueryID = Replace(sQueryID, " ", ",")
    
    
-   sQuery = "SELECT group_concat(CASE WHEN (Name ='' OR Name IS NULL) THEN Unicode ELSE Name END,' + ') as Name, " & _
-            "       group_concat(CASE WHEN (Unicode='' OR Unicode IS NULL) THEN Name ELSE Unicode END,' + ') as Unicode  FROM  Label WHERE ID IN(" & sQueryID & ") " & _
+   sQueryString = "SELECT group_concat(CASE WHEN (Name ='' OR Name IS NULL) THEN Unicode ELSE Name END,' + ') as Name, " & _
+            "       group_concat(CASE WHEN (Unicode='' OR Unicode IS NULL) THEN Name ELSE Unicode END,' + ') as Unicode  FROM  Actor WHERE ID IN(" & sQueryID & ") " & _
             "ORDER BY Name"
-   '
-   Set sqlQuery = mConnection.OpenRecordset(sQuery)
+   Set sqlQuery = mConnection.OpenRecordset(sQueryString)
    
-
    If Not sqlQuery.EOF Then
       If boolUnicode Then GetActorName = sqlQuery.Fields("Name") & "%%" & sqlQuery.Fields("Unicode") Else GetActorName = sqlQuery.Fields("Name")
    End If
-   
-   'Set sqlQuery = mConnection.OpenRecordset("SELECT Name, Unicode FROM Actor WHERE ID IN(" & sQueryID & ") ORDER BY Name")
-'''   While Not sqlQuery.EOF
-'''      sActorName = sqlQuery.Fields("Name")
-'''      sActorUnicode = sqlQuery.Fields("Unicode")
-'''      If sActorName = "" Then sActorName = sActorUnicode
-'''      If sActorUnicode = "" Then sActorUnicode = sActorName
-'''
-'''      If sActorsName = "" Then sActorsName = sActorName Else sActorsName = sActorsName & " + " & sActorName
-'''      If sActorsUnicode = "" Then sActorsUnicode = sActorUnicode Else sActorsUnicode = sActorsUnicode & " + " & sActorUnicode
-'''
-'''      iActorCount = iActorCount + 1 '
-'''      sqlQuery.MoveNext
-'''   Wend
-
-   'If boolUnicode Then GetActorName = sActorsName & "%%" & sActorsUnicode Else GetActorName = sActorsName
    
    Exit Function
 Error:
@@ -283,7 +268,7 @@ Public Function GetDirectorName(IDs As String, Optional maxName As Integer = 2) 
    On Error GoTo Error
    Dim sQueryID As String
 
-   Dim sDirectorName As String
+   'Dim sDirectorName As String
    Dim sQueryString As String
    Dim sqlQuery As cRecordset
    
@@ -297,6 +282,81 @@ Public Function GetDirectorName(IDs As String, Optional maxName As Integer = 2) 
 Error:
    Log.Writelog "GetDirectorName", "ERROR", Err.Description, "IDs = " & IDs & " ,maxName=" & maxName & " ,sQueryString=" & sQueryString
 
+End Function
+
+Public Function GetAlbumField(ByVal albumID As Long, FieldName As String) As Variant
+   On Error GoTo Error
+   
+
+   Dim sQueryString As String
+   Dim sqlQuery As cRecordset
+   
+   sQueryString = "SELECT " & FieldName & " FROM Movie WHERE ID=" & albumID
+   Set sqlQuery = mConnection.OpenRecordset(sQueryString)
+   If Not sqlQuery.EOF Then GetAlbumField = sqlQuery.Fields(FieldName)
+   
+   Exit Function
+Error:
+   Log.Writelog "GetAlbumField", "ERROR", Err.Description, "albumID = " & albumID & " ,FieldName=" & FieldName & " ,sQueryString=" & sQueryString
+End Function
+
+
+Public Function GetLabelName(ByVal ID As Long) As String
+
+   On Error GoTo Error
+   Dim sQueryString As String
+   Dim sqlQuery As cRecordset
+   
+   sQueryString = "SELECT Name FROM Label WHERE ID=" & ID
+   Set sqlQuery = mConnection.OpenRecordset(sQueryString)
+   If Not sqlQuery.EOF Then GetLabelName = sqlQuery.Fields("Name")
+   
+   Exit Function
+Error:
+   Log.Writelog "GetLabelName", "ERROR", Err.Description, "ID = " & ID & " ,sQueryString=" & sQueryString
+
+End Function
+
+Public Function getAlbumAvailableQuery() As String
+   If selectAlbumType = All Then
+      getAlbumAvailableQuery = "1,0"
+   ElseIf selectAlbumType = Available Then
+      getAlbumAvailableQuery = "1"
+   ElseIf selectAlbumType = NotAvailable Then
+      getAlbumAvailableQuery = "0"
+   End If
+End Function
+
+
+
+Public Function GetTVSeriesAvailable()
+'   On Error GoTo Error
+   Dim i As Long
+   Dim loc_TVID As Long
+   Dim loc_TVIDs As String
+   Dim tvSeriesCount As Long
+   Dim varData As Variant
+   Dim loc_AlbumAvailable As Integer
+   Dim mReturnString As String
+   
+   Dim iFieldUnicode As Integer, iFieldSeason As Integer
+   
+   
+ '  On Error GoTo Error
+   Dim sQueryString As String
+   Dim sqlQuery As cRecordset
+   
+   sQueryString = "SELECT TVSeries.ID, TVSeries.Name, TVSeries.Unicode, TVSeries.Seasoncount FROM TVSeries INNER JOIN Movie ON TVSeries.ID=Movie.TVID WHERE Movie.Available IN (" & getAlbumAvailableQuery & ") ORDER BY TVSeries.Name"
+   Set sqlQuery = mConnection.OpenRecordset(sQueryString)
+   While Not sqlQuery.EOF
+      varData = Array(sqlQuery.Fields("ID"), sqlQuery.Fields("Name"), sqlQuery.Fields("Unicode"), sqlQuery.Fields("Seasoncount"))
+      If mReturnString = "" Then mReturnString = Join(varData, de_Field) Else mReturnString = mReturnString & de_Record & Join(varData, de_Field)
+   Wend
+   GetTVSeriesAvailable = mReturnString
+   Exit Function
+Error:
+   Log.Writelog "GetTVSeriesAvailable", "ERROR", Err.Description, "sQueryString=" & sQueryString
+   
 End Function
 
 
@@ -320,7 +380,7 @@ Public Function GetAlbumInfos(Index As Long, albumAvailable As Integer, SortKey 
    
    
    Dim sqlQuery As cRecordset
-   Set sqlQuery = mConnection.OpenRecordset("SELECT ID, Name, Unice, Year, Rating, Favorite, Rank, Label, LabelUnicode, TypeCDID, AlbumArtistID, ActorName, TVSeriesName, numSeason, AudioIDs, DirectorID, ActorID FROM Movie WHERE ID=" & ID)
+   'Set sqlQuery = mConnection.OpenRecordset("SELECT ID, Name, Unice, Year, Rating, Favorite, Rank, Label, LabelUnicode, TypeCDID, AlbumArtistID, ActorName, TVSeriesName, numSeason, AudioIDs, DirectorID, ActorID FROM Movie WHERE ID=" & ID)
    
    
    
@@ -410,3 +470,11 @@ End Function
 '   WriteEvent "AlbumByTVSeries", Err.Description, Err.Source
 'End Function
 '
+
+Public Sub CloseAllDatabase()
+   On Error GoTo Error
+   'Do nothing since no close connectio
+   Exit Sub
+Error:
+   Log.Writelog "CloseAllDatabase", "ERROR", Err.Description, ""
+End Sub
