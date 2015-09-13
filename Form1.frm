@@ -76,6 +76,6 @@ Private Sub Command3_Click()
 End Sub
 
 Private Sub Form_Load()
-   cYMGuide.Initialize "D:\Seng\VB DataEntry\Khmer\khmer karaoke.sqlite", 0
+   cYMGuide.Initialize App.Path & "\Database\khmer karaoke.sqlite", 0
 
 End Sub

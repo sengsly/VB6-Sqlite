@@ -5,3 +5,5 @@
 13-Sep-15 12:31:30 PM	ERROR,[GetDirectorName] Cannot compile Select-Statement: near "ORDER": syntax error [IDs = 1 ,maxName=2]
 13-Sep-15 12:36:32 PM	ERROR,[GetDirectorName] Cannot compile Select-Statement: near ")": syntax error [IDs = 1,2 ,maxName=2]
 13-Sep-15 12:46:50 PM	ERROR,[GetDirectorName] Cannot compile Select-Statement: near "dIN": syntax error [IDs = 1,2 ,maxName=2 ,sQueryString=SELECT group_concat(Name,'+') as Name, group_concat(Unicode,' + ') as Unicode FROM Director WHERE ID dIN(1,2) ORDER BY Name LIMIT 2]
+13-Sep-15 3:35:36 PM	ERROR,[Initialize] File not found! [lpFileName = D:\Seng\VB6-Sqlite\Database\khmer karaoke.sqlite, aDatabaseType=0]
+13-Sep-15 3:35:37 PM	ERROR,[GetDirectorName] Cnn.DBHdl is null, cannot open [IDs = 1,2 ,maxName=2 ,sQueryString=SELECT group_concat(Name,'+') as Name, group_concat(Unicode,' + ') as Unicode FROM Director WHERE ID IN(1,2) ORDER BY Name LIMIT 2]

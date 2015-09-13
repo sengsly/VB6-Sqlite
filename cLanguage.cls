@@ -197,41 +197,7 @@ Public Function GetTVSeriesName(ByVal ID As Long) As String
 Error:
    Log.Writelog "GetTVSeriesName", "ERROR", Err.Description, "ID = " & ID
 End Function
-Public Function GetActorName(IDs As String, boolUnicode As Boolean) As String
 
-   On Error GoTo Error
-   Dim sQueryID As String
-   Dim iActorCount As Integer
-   Dim sActorName As String
-   Dim sActorUnicode As String
-   Dim sActorsUnicode As String
-   Dim sActorsName As String
-   Dim sqlQuery As cRecordset
-   
-   sQueryID = Trim(Replace(IDs, ";", " "))
-   sQueryID = Replace(sQueryID, " ", ",")
-   
-   Set sqlQuery = mConnection.OpenRecordset("SELECT Name, Unicode FROM Actor WHERE ID IN(" & sQueryID & ") ORDER BY Name")
-   While Not sqlQuery.EOF
-      sActorName = sqlQuery.Fields("Name")
-      sActorUnicode = sqlQuery.Fields("Unicode")
-      If sActorName = "" Then sActorName = sActorUnicode
-      If sActorUnicode = "" Then sActorUnicode = sActorName
-      
-      If sActorsName = "" Then sActorsName = sActorName Else sActorsName = sActorsName & " + " & sActorName
-      If sActorsUnicode = "" Then sActorsUnicode = sActorUnicode Else sActorsUnicode = sActorsUnicode & " + " & sActorUnicode
-      
-      iActorCount = iActorCount + 1 '
-      sqlQuery.MoveNext
-   Wend
-
-   If boolUnicode Then GetActorName = sActorsName & "%%" & sActorsUnicode Else GetActorName = sActorsName
-   
-   Exit Function
-Error:
-   Log.Writelog "GetActorName", "ERROR", Err.Description, "IDs = " & IDs & " ,boolUnicode=" & boolUnicode
-
-End Function
 
 Public Function CompareStartLetter(ByVal Source As String, ByVal Find As String, Langue As String, bUnicode As Boolean) As Boolean
    Dim i As Integer
@@ -269,6 +235,41 @@ Public Function CompareStartLetter(ByVal Source As String, ByVal Find As String,
    End If
 End Function
 
+Public Function GetActorName(IDs As String, boolUnicode As Boolean) As String
+
+   On Error GoTo Error
+   Dim sQueryID As String
+   Dim iActorCount As Integer
+   Dim sActorName As String
+   Dim sActorUnicode As String
+   Dim sActorsUnicode As String
+   Dim sActorsName As String
+   Dim sqlQuery As cRecordset
+   
+   sQueryID = Trim(Replace(IDs, ";", " "))
+   sQueryID = Replace(sQueryID, " ", ",")
+   
+   Set sqlQuery = mConnection.OpenRecordset("SELECT Name, Unicode FROM Actor WHERE ID IN(" & sQueryID & ") ORDER BY Name")
+   While Not sqlQuery.EOF
+      sActorName = sqlQuery.Fields("Name")
+      sActorUnicode = sqlQuery.Fields("Unicode")
+      If sActorName = "" Then sActorName = sActorUnicode
+      If sActorUnicode = "" Then sActorUnicode = sActorName
+      
+      If sActorsName = "" Then sActorsName = sActorName Else sActorsName = sActorsName & " + " & sActorName
+      If sActorsUnicode = "" Then sActorsUnicode = sActorUnicode Else sActorsUnicode = sActorsUnicode & " + " & sActorUnicode
+      
+      iActorCount = iActorCount + 1 '
+      sqlQuery.MoveNext
+   Wend
+
+   If boolUnicode Then GetActorName = sActorsName & "%%" & sActorsUnicode Else GetActorName = sActorsName
+   
+   Exit Function
+Error:
+   Log.Writelog "GetActorName", "ERROR", Err.Description, "IDs = " & IDs & " ,boolUnicode=" & boolUnicode
+
+End Function
 Public Function GetDirectorName(IDs As String, Optional maxName As Integer = 2) As String
 
    On Error GoTo Error
