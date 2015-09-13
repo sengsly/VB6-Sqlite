@@ -21,6 +21,16 @@ Public Enum AlbumEnum
    Available = 1
    All = 3
 End Enum
+Public Enum CDTypeEnum
+   Clean = 2
+   Explicit = 3
+   AllCD = 0
+End Enum
+Public Enum SortEnum
+   stDate = 0
+   stName = 1
+   stNone = 3
+End Enum
 
 
 '=====================Local Constant
@@ -32,6 +42,8 @@ Dim mCountry As String
 Dim mLanguage As String
 Dim mCountryPath As String
 Dim mOpenSuccess As Boolean
+
+Dim var_Album() As Variant
 
 '======================Browsing album
 Public selectAlbumType As AlbumEnum
@@ -329,20 +341,10 @@ End Function
 
 
 
-Public Function GetTVSeriesAvailable()
-'   On Error GoTo Error
-   Dim i As Long
-   Dim loc_TVID As Long
-   Dim loc_TVIDs As String
-   Dim tvSeriesCount As Long
+Public Function GetTVSeriesAvailable() As String
+   On Error GoTo Error
    Dim varData As Variant
-   Dim loc_AlbumAvailable As Integer
    Dim mReturnString As String
-   
-   Dim iFieldUnicode As Integer, iFieldSeason As Integer
-   
-   
- '  On Error GoTo Error
    Dim sQueryString As String
    Dim sqlQuery As cRecordset
    
@@ -351,14 +353,69 @@ Public Function GetTVSeriesAvailable()
    While Not sqlQuery.EOF
       varData = Array(sqlQuery.Fields("ID"), sqlQuery.Fields("Name"), sqlQuery.Fields("Unicode"), sqlQuery.Fields("Seasoncount"))
       If mReturnString = "" Then mReturnString = Join(varData, de_Field) Else mReturnString = mReturnString & de_Record & Join(varData, de_Field)
+      sqlQuery.MoveNext
    Wend
    GetTVSeriesAvailable = mReturnString
    Exit Function
 Error:
    Log.Writelog "GetTVSeriesAvailable", "ERROR", Err.Description, "sQueryString=" & sQueryString
-   
+ 
 End Function
 
+Public Function AlbumByArtist(ArtistID As Long, Optional selectType As AlbumEnum = All, Optional ArrangeBy As SortEnum = stName, Optional Favorite As Boolean, Optional CDType As CDTypeEnum = AllCD, Optional SearchPage As Boolean = False) As String
+   On Error GoTo Error
+   Dim i As Long
+   Dim fieldAvailable As Integer
+   Dim fieldFlag As Integer
+   Dim fieldArtists As Integer
+   Dim count As Integer
+   Dim SortKey As Integer
+   Dim boolSelect As Boolean
+   Dim var_tmpAlbum() As Variant
+   Dim loc_AlbumID As Long
+   
+   
+   If SearchPage = False Then Erase var_Album
+   
+   Dim loc_Available As Integer
+   Dim loc_Flag As Integer
+   Dim loc_Artists As String
+   
+   
+   With PV_TableMovie
+      fieldAvailable = .FieldToIndex("Available")
+      fieldFlag = .FieldToIndex("Flag")
+      fieldArtists = .FieldToIndex("ActorID")
+      
+      
+      boolSelect = True
+      For i = 0 To .RecordCount - 1
+         loc_Flag = FlagCDOrder(.AbsoluteField(i, fieldFlag))
+         loc_Artists = .AbsoluteField(i, fieldArtists)
+         If InStr(1, loc_Artists, ";" & ArtistID & ";", vbTextCompare) > 0 Then
+            loc_AlbumID = .AbsoluteField(i, 0)
+            loc_Available = getAlbumAvailable(prv_Country, loc_AlbumID)
+            If IsCDAvailable(loc_Available, selectType) And IsValidCDType(loc_Flag, selectFlagType) Then
+               ReDim Preserve var_tmpAlbum(count)
+               var_tmpAlbum(count) = GetAlbumInfos(i, loc_Available, SortKey, True, loc_Flag)
+               count = count + 1
+            End If
+         End If
+         
+      Next
+   End With
+   
+   Dim sortIndices As Variant
+  
+   sortIndices = ReturnSortArray(3, True, 11, True, 1, ArrangeBy = stName, 4, ArrangeBy = stDate)
+   If count > 0 Then QuickSort var_tmpAlbum, sortIndices, False
+   If SearchPage Then var_SearchAlbum = var_tmpAlbum Else var_Album = var_tmpAlbum
+   AlbumByArtist = count
+   Exit Function
+Error:
+   Log.Writelog "AlbumByArtist", "ERROR", Err.Description, "ArtistID = " & ArtistID & " ,sQueryString=" & sQueryString & " ,selectType=" & selectType & " ,ArrangeBy=" & ArrangeBy
+   'WriteEvent "AlbumByArtist", Err.Description, Err.Source
+End Function
 
 Public Function GetAlbumInfos(Index As Long, albumAvailable As Integer, SortKey As Integer, LeaveYear As Boolean, AlbumFlag As Integer) As Variant
    On Error GoTo Error
